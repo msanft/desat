@@ -2,8 +2,10 @@ open Desat.ParserInterface
 open Desat.Ast
 
 let expr =
-  let pp ppf e = Fmt.string ppf (dump_expr e) in
-  let rec equal a b =
+  let pp (ppf : Format.formatter) (e : expr) : unit =
+    Fmt.string ppf (dump_expr e)
+  in
+  let rec equal (a : expr) (b : expr) : bool =
     match (a, b) with
     | Bool n1, Bool n2 -> n1 = n2
     | And (e1a, e2a), And (e1b, e2b) -> equal e1a e1b && equal e2a e2b
@@ -15,8 +17,10 @@ let expr =
   Alcotest.testable pp equal
 
 let expr_list =
-  let pp ppf es = Fmt.string ppf (String.concat ", " (List.map dump_expr es)) in
-  let equal a b =
+  let pp (ppf : Format.formatter) (es : expr list) : unit =
+    Fmt.string ppf (String.concat ", " (List.map dump_expr es))
+  in
+  let equal (a : expr list) (b : expr list) : bool =
     try
       List.for_all2
         (fun a b ->
@@ -27,7 +31,7 @@ let expr_list =
   in
   Alcotest.testable pp equal
 
-let test_parse_expr s expected =
+let test_parse_expr (s : string) (expected : expr) : unit =
   try
     let actual = parse_expr s in
     Alcotest.(check expr) "parse_expr" expected actual
@@ -35,7 +39,7 @@ let test_parse_expr s expected =
     Printf.printf "Error parsing '%s': %s\n" s (Printexc.to_string e);
     raise e
 
-let test_parse_expr_list s expected =
+let test_parse_expr_list (s : string) (expected : expr list) : unit =
   try
     let actual = parse_expr_list s in
     Alcotest.(check expr_list) "parse_expr_list" expected actual

@@ -1,10 +1,10 @@
 open Desat.Ast
 
-let test_dump_expr e expected () =
+let test_dump_expr (e : expr) (expected : string) () : unit =
   let actual = dump_expr e in
   Alcotest.(check string) "dump_expr" expected actual
 
-let test_dump_expr_list es expected () =
+let test_dump_expr_list (es : expr list) (expected : string) () : unit =
   let actual = dump_expr_list es in
   Alcotest.(check string) "dump_expr_list" expected actual
 

@@ -5,7 +5,7 @@ type expr =
   | Not of expr
   | Var of string
 
-let rec dump_expr e =
+let rec dump_expr (e : expr) : string =
   match e with
   | Bool b -> string_of_bool b
   | And (e1, e2) -> "(" ^ dump_expr e1 ^ " && " ^ dump_expr e2 ^ ")"
@@ -13,4 +13,5 @@ let rec dump_expr e =
   | Not e1 -> "!" ^ dump_expr e1
   | Var s -> s
 
-let dump_expr_list exprs = String.concat ", " (List.map dump_expr exprs)
+let dump_expr_list (exprs : expr list) : string =
+  String.concat ", " (List.map dump_expr exprs)

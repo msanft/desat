@@ -16,31 +16,31 @@ open Ast
 %left AND
 %right NOT
 
-%type <Ast.expr> expr
-%type <Ast.expr list> expr_list
-%start expr
-%start expr_list
+%type <Ast.cnf_expr> cnf_expr
+%type <Ast.cnf_expr list> cnf_expr_list
+%start cnf_expr
+%start cnf_expr_list
 
 %%
 
-expr:
-  | e = expr_inner EOF { e }
+cnf_expr:
+  | e = cnf_expr_inner EOF { e }
   ;
 
-expr_list:
-  | es = expr_sequence EOF { es }
+cnf_expr_list:
+  | es = cnf_expr_sequence EOF { es }
   ;
 
-expr_sequence:
-  | e = expr_inner { [e] }                               (* Single expression *)
-  | e = expr_inner COMMA es = expr_sequence { e :: es }  (* Multiple expressions *)
+cnf_expr_sequence:
+  | e = cnf_expr_inner { [e] }                               (* Single cnf_expression *)
+  | e = cnf_expr_inner COMMA es = cnf_expr_sequence { e :: es }  (* Multiple cnf_expressions *)
   ;
 
-expr_inner:
+cnf_expr_inner:
   | BOOL { Bool $1 }
-  | LPAREN e = expr_inner RPAREN { e }
-  | expr_inner AND expr_inner { And ($1, $3) }
-  | expr_inner OR expr_inner { Or ($1, $3) }
-  | NOT expr_inner { Not $2 }
+  | LPAREN e = cnf_expr_inner RPAREN { e }
+  | cnf_expr_inner AND cnf_expr_inner { And ($1, $3) }
+  | cnf_expr_inner OR cnf_expr_inner { Or ($1, $3) }
+  | NOT cnf_expr_inner { Not $2 }
   | VARIABLE { Var $1 }
   ;

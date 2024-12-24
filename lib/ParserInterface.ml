@@ -20,5 +20,7 @@ let parse' f (s : string) =
            ("Unknown error: " ^ Printexc.to_string e ^ " at "
            ^ pos_string lexbuf.lex_curr_p))
 
-let parse_expr (s : string) : Ast.expr = parse' Parser.expr s
-let parse_expr_list (s : string) : Ast.expr list = parse' Parser.expr_list s
+let parse_cnf_expr (s : string) : Ast.cnf_expr = parse' Parser.cnf_expr s
+
+let parse_cnf_expr_list (s : string) : Ast.cnf_expr list =
+  parse' Parser.cnf_expr_list s

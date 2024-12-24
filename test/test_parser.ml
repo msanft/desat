@@ -1,83 +1,140 @@
 open Desat.ParserInterface
 open Desat.Ast
 
-let cnf_expr =
-  let pp (ppf : Format.formatter) (e : cnf_expr) : unit =
-    Fmt.string ppf (dump_cnf_expr e)
+let literal =
+  let pp ppf = function
+    | Pos v -> Fmt.string ppf v
+    | Neg v -> Fmt.string ppf ("!" ^ v)
+    | Bool b -> Fmt.string ppf (string_of_bool b)
   in
-  let rec equal (a : cnf_expr) (b : cnf_expr) : bool =
+  let equal a b =
     match (a, b) with
-    | Bool n1, Bool n2 -> n1 = n2
-    | And (e1a, e2a), And (e1b, e2b) -> equal e1a e1b && equal e2a e2b
-    | Or (e1a, e2a), Or (e1b, e2b) -> equal e1a e1b && equal e2a e2b
-    | Not e1, Not e2 -> equal e1 e2
-    | Var s1, Var s2 -> s1 = s2
+    | Pos v1, Pos v2 -> v1 = v2
+    | Neg v1, Neg v2 -> v1 = v2
+    | Bool b1, Bool b2 -> b1 = b2
     | _, _ -> false
   in
   Alcotest.testable pp equal
 
-let cnf_expr_list =
-  let pp (ppf : Format.formatter) (es : cnf_expr list) : unit =
-    Fmt.string ppf (String.concat ", " (List.map dump_cnf_expr es))
-  in
-  let equal (a : cnf_expr list) (b : cnf_expr list) : bool =
+let clause =
+  let pp ppf (Clause lits) = Fmt.string ppf (string_of_clause (Clause lits)) in
+  let equal (Clause lits1) (Clause lits2) =
     try
       List.for_all2
         (fun a b ->
-          Alcotest.check cnf_expr "" a b;
+          Alcotest.check literal "" a b;
           true)
-        a b
+        lits1 lits2
     with Invalid_argument _ -> false
   in
   Alcotest.testable pp equal
 
-let test_parse_cnf_expr (s : string) (expected : cnf_expr) : unit =
+let cnf =
+  let pp ppf (CNF clauses) = Fmt.string ppf (string_of_cnf (CNF clauses)) in
+  let equal (CNF clauses1) (CNF clauses2) =
+    try
+      List.for_all2
+        (fun a b ->
+          Alcotest.check clause "" a b;
+          true)
+        clauses1 clauses2
+    with Invalid_argument _ -> false
+  in
+  Alcotest.testable pp equal
+
+let test_parse_cnf (s : string) (expected : cnf) : unit =
   try
-    let actual = parse_cnf_expr s in
-    Alcotest.(check cnf_expr) "parse_cnf_expr" expected actual
+    let actual = parse_cnf s in
+    Alcotest.(check cnf) "parse_cnf" expected actual
   with e ->
     Printf.printf "Error parsing '%s': %s\n" s (Printexc.to_string e);
     raise e
 
-let test_parse_cnf_expr_list (s : string) (expected : cnf_expr list) : unit =
+let contains_substring ~substring str =
   try
-    let actual = parse_cnf_expr_list s in
-    Alcotest.(check cnf_expr_list) "parse_cnf_expr_list" expected actual
-  with e ->
-    Printf.printf "Error parsing '%s': %s\n" s (Printexc.to_string e);
-    raise e
+    let _ = Str.search_forward (Str.regexp_string substring) str 0 in
+    true
+  with Not_found -> false
+
+let test_parse_invalid_cnf (s : string) (expected_error : string) : unit =
+  try
+    let _ = parse_cnf s in
+    Alcotest.fail ("Expected parse error for invalid CNF: " ^ s)
+  with
+  | Failure msg ->
+      if not (contains_substring ~substring:expected_error msg) then
+        Alcotest.failf "Expected error containing '%s' but got: %s"
+          expected_error msg
+  | e -> Alcotest.failf "Unexpected error: %s" (Printexc.to_string e)
 
 let () =
   let open Alcotest in
   run "Parser Tests"
     [
-      ( "parse_cnf_expr",
+      ( "parse_cnf",
         [
           test_case "Single bool" `Quick (fun () ->
-              test_parse_cnf_expr "true" (Bool true));
+              test_parse_cnf "true" (CNF [ Clause [ Bool true ] ]));
           test_case "Single variable" `Quick (fun () ->
-              test_parse_cnf_expr "foo" (Var "foo"));
-          test_case "Binary and" `Quick (fun () ->
-              test_parse_cnf_expr "true && foo" (And (Bool true, Var "foo")));
-          test_case "Binary or" `Quick (fun () ->
-              test_parse_cnf_expr "false || foo" (Or (Bool false, Var "foo")));
-          test_case "Not" `Quick (fun () ->
-              test_parse_cnf_expr "!false" (Not (Bool false)));
-          test_case "Parentheses" `Quick (fun () ->
-              test_parse_cnf_expr "(true && (false || foo))"
-                (And (Bool true, Or (Bool false, Var "foo"))));
+              test_parse_cnf "foo" (CNF [ Clause [ Pos "foo" ] ]));
+          test_case "Single clause with AND" `Quick (fun () ->
+              test_parse_cnf "true && foo"
+                (CNF [ Clause [ Bool true ]; Clause [ Pos "foo" ] ]));
+          test_case "Single OR clause" `Quick (fun () ->
+              test_parse_cnf "(false || foo)"
+                (CNF [ Clause [ Bool false; Pos "foo" ] ]));
+          test_case "Negated variable" `Quick (fun () ->
+              test_parse_cnf "!foo" (CNF [ Clause [ Neg "foo" ] ]));
+          test_case "Multiple clauses" `Quick (fun () ->
+              test_parse_cnf "(true || foo) && (!bar || baz)"
+                (CNF
+                   [
+                     Clause [ Bool true; Pos "foo" ];
+                     Clause [ Neg "bar"; Pos "baz" ];
+                   ]));
         ] );
-      ( "parse_cnf_expr_list",
+      ( "parse_assignment",
         [
-          test_case "Single bool" `Quick (fun () ->
-              test_parse_cnf_expr_list "true" [ Bool true ]);
-          test_case "Multiple bools" `Quick (fun () ->
-              test_parse_cnf_expr_list "true, false" [ Bool true; Bool false ]);
-          test_case "Mixed bools / variables" `Quick (fun () ->
-              test_parse_cnf_expr_list "true, false, foo"
-                [ Bool true; Bool false; Var "foo" ]);
-          test_case "Multiple cnf_expressions" `Quick (fun () ->
-              test_parse_cnf_expr_list "true && false, foo || bar"
-                [ And (Bool true, Bool false); Or (Var "foo", Var "bar") ]);
+          test_case "Single assignment" `Quick (fun () ->
+              let actual = parse_assignment "{ x = true } foo" in
+              Alcotest.(check (list (pair string bool)))
+                "assignments"
+                [ ("x", true) ]
+                actual.assignments;
+              Alcotest.(check cnf)
+                "formula" (CNF [ Clause [ Pos "foo" ] ]) actual.formula);
+          test_case "Multiple assignments" `Quick (fun () ->
+              let actual =
+                parse_assignment "{ a = false, b = true } (a || b)"
+              in
+              Alcotest.(check (list (pair string bool)))
+                "assignments"
+                [ ("a", false); ("b", true) ]
+                actual.assignments;
+              Alcotest.(check cnf)
+                "formula"
+                (CNF [ Clause [ Pos "a"; Pos "b" ] ])
+                actual.formula);
+        ] );
+      ( "reject_invalid_cnf",
+        [
+          test_case "Nested OR" `Quick (fun () ->
+              test_parse_invalid_cnf "a || (b || c)" "Parser error");
+          test_case "Top level OR" `Quick (fun () ->
+              test_parse_invalid_cnf "a || b" "Parser error");
+          test_case "Complex negation" `Quick (fun () ->
+              test_parse_invalid_cnf "!(a || b)" "Parser error");
+          test_case "Negated AND" `Quick (fun () ->
+              test_parse_invalid_cnf "!(a && b)" "Parser error");
+          test_case "Nested AND under OR" `Quick (fun () ->
+              test_parse_invalid_cnf "(a || (b && c))" "Parser error");
+          test_case "Double negation" `Quick (fun () ->
+              test_parse_invalid_cnf "!!a" "Parser error");
+          test_case "OR at root with AND" `Quick (fun () ->
+              test_parse_invalid_cnf "a || b && c" "Parser error");
+          test_case "Empty parentheses" `Quick (fun () ->
+              test_parse_invalid_cnf "()" "Parser error");
+          test_case "Unmatched parentheses" `Quick (fun () ->
+              test_parse_invalid_cnf "(a || b" "Parser error");
         ] );
     ]

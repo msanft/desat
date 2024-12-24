@@ -6,6 +6,9 @@ let digit = ['0'-'9']
 let alpha = ['a'-'z' 'A'-'Z']
 
 let plus_sign = '+'
+let minus_sign = '-'
+let mul_sign = '*'
+let div_sign = '/'
 
 let int_constant = digit+
 
@@ -16,6 +19,9 @@ let whitespace = [' ' '\t' '\n' '\r']+
 rule token = parse
   | int_constant { INT_CONSTANT (int_of_string (Lexing.lexeme lexbuf)) }
   | plus_sign { PLUS }
+  | minus_sign { MINUS }
+  | mul_sign { MUL }
+  | div_sign { DIV }
   | identifier { VARIABLE (Lexing.lexeme lexbuf) }
   | whitespace { token lexbuf }
   | eof { EOF}

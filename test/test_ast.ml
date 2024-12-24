@@ -17,5 +17,11 @@ let () =
             (test_dump_expr
                (Add (Add (Int 13, Int 37), Var "foo"))
                "Int 13 + Int 37 + Var foo");
+          test_case "Binary minus" `Quick
+            (test_dump_expr (Sub (Int 13, Var "foo")) "Int 13 - Var foo");
+          test_case "Binary mul" `Quick
+            (test_dump_expr (Mul (Int 13, Var "foo")) "Int 13 * Var foo");
+          test_case "Binary div" `Quick
+            (test_dump_expr (Div (Int 13, Var "foo")) "Int 13 / Var foo");
         ] );
     ]

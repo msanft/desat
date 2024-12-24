@@ -11,6 +11,9 @@ let mul_sign = '*'
 let div_sign = '/'
 let left_paren = '('
 let right_paren = ')'
+let and_sign = "&&" | "and"
+let or_sign = "||" | "or"
+let not_sign = '!' | "not"
 
 let int_constant = digit+
 
@@ -24,6 +27,9 @@ rule token = parse
   | minus_sign { MINUS }
   | mul_sign { MUL }
   | div_sign { DIV }
+  | and_sign { AND }
+  | or_sign { OR }
+  | not_sign { NOT }
   | left_paren { LPAREN }
   | right_paren { RPAREN }
   | identifier { VARIABLE (Lexing.lexeme lexbuf) }

@@ -10,6 +10,9 @@ let expr =
     | Sub (e1a, e2a), Sub (e1b, e2b) -> equal e1a e1b && equal e2a e2b
     | Mul (e1a, e2a), Mul (e1b, e2b) -> equal e1a e1b && equal e2a e2b
     | Div (e1a, e2a), Div (e1b, e2b) -> equal e1a e1b && equal e2a e2b
+    | And (e1a, e2a), And (e1b, e2b) -> equal e1a e1b && equal e2a e2b
+    | Or (e1a, e2a), Or (e1b, e2b) -> equal e1a e1b && equal e2a e2b
+    | Not e1, Not e2 -> equal e1 e2
     | Var s1, Var s2 -> s1 = s2
     | _, _ -> false
   in
@@ -62,5 +65,11 @@ let () =
           test_case "Parentheses with variables" `Quick (fun () ->
               test_parse_expr "(foo + 3) * bar"
                 (Mul (Add (Var "foo", Int 3), Var "bar")));
+          test_case "Binary and" `Quick (fun () ->
+              test_parse_expr "13 && foo" (And (Int 13, Var "foo")));
+          test_case "Binary or" `Quick (fun () ->
+              test_parse_expr "13 || foo" (Or (Int 13, Var "foo")));
+          test_case "Not" `Quick (fun () ->
+              test_parse_expr "!13" (Not (Int 13)));
         ] );
     ]

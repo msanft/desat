@@ -23,5 +23,10 @@ let () =
             (test_dump_expr (Mul (Int 13, Var "foo")) "(13 * foo)");
           test_case "Binary div" `Quick
             (test_dump_expr (Div (Int 13, Var "foo")) "(13 / foo)");
+          test_case "Binary and" `Quick
+            (test_dump_expr (And (Int 13, Var "foo")) "(13 && foo)");
+          test_case "Binary or" `Quick
+            (test_dump_expr (Or (Int 13, Var "foo")) "(13 || foo)");
+          test_case "Not" `Quick (test_dump_expr (Not (Int 13)) "!13");
         ] );
     ]

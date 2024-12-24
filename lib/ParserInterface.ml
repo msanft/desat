@@ -27,7 +27,3 @@ let parse_cnf (s : string) : Ast.cnf = parse' Parser.cnf_expr s
 
 let parse_assignment (s : string) : Ast.assignment =
   parse' Parser.cnf_with_assignments s
-
-let parse_clause_list (s : string) : Ast.clause list =
-  let (CNF clauses) = parse_cnf s in
-  clauses

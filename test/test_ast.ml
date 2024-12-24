@@ -1,6 +1,5 @@
 open Desat.Ast
 
-(* Helper functions to construct test cases more easily *)
 let mk_literal_pos v = Pos v
 let mk_literal_neg v = Neg v
 let mk_clause lits = Clause lits

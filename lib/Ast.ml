@@ -1,9 +1,5 @@
 type expr =
-  | Int of int
-  | Add of expr * expr
-  | Sub of expr * expr
-  | Mul of expr * expr
-  | Div of expr * expr
+  | Bool of bool
   | And of expr * expr
   | Or of expr * expr
   | Not of expr
@@ -11,11 +7,7 @@ type expr =
 
 let rec dump_expr e =
   match e with
-  | Int i -> string_of_int i
-  | Add (e1, e2) -> "(" ^ dump_expr e1 ^ " + " ^ dump_expr e2 ^ ")"
-  | Sub (e1, e2) -> "(" ^ dump_expr e1 ^ " - " ^ dump_expr e2 ^ ")"
-  | Mul (e1, e2) -> "(" ^ dump_expr e1 ^ " * " ^ dump_expr e2 ^ ")"
-  | Div (e1, e2) -> "(" ^ dump_expr e1 ^ " / " ^ dump_expr e2 ^ ")"
+  | Bool b -> string_of_bool b
   | And (e1, e2) -> "(" ^ dump_expr e1 ^ " && " ^ dump_expr e2 ^ ")"
   | Or (e1, e2) -> "(" ^ dump_expr e1 ^ " || " ^ dump_expr e2 ^ ")"
   | Not e1 -> "!" ^ dump_expr e1

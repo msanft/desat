@@ -5,11 +5,7 @@ let expr =
   let pp ppf e = Fmt.string ppf (dump_expr e) in
   let rec equal a b =
     match (a, b) with
-    | Int n1, Int n2 -> n1 = n2
-    | Add (e1a, e2a), Add (e1b, e2b) -> equal e1a e1b && equal e2a e2b
-    | Sub (e1a, e2a), Sub (e1b, e2b) -> equal e1a e1b && equal e2a e2b
-    | Mul (e1a, e2a), Mul (e1b, e2b) -> equal e1a e1b && equal e2a e2b
-    | Div (e1a, e2a), Div (e1b, e2b) -> equal e1a e1b && equal e2a e2b
+    | Bool n1, Bool n2 -> n1 = n2
     | And (e1a, e2a), And (e1b, e2b) -> equal e1a e1b && equal e2a e2b
     | Or (e1a, e2a), Or (e1b, e2b) -> equal e1a e1b && equal e2a e2b
     | Not e1, Not e2 -> equal e1 e2
@@ -53,71 +49,31 @@ let () =
     [
       ( "parse_expr",
         [
-          test_case "Single integer" `Quick (fun () ->
-              test_parse_expr "42" (Int 42));
-          test_case "Single digit" `Quick (fun () ->
-              test_parse_expr "5" (Int 5));
-          test_case "Integer with whitespace" `Quick (fun () ->
-              test_parse_expr " 42 " (Int 42));
-          test_case "Binary add" `Quick (fun () ->
-              test_parse_expr "13 + 37" (Add (Int 13, Int 37)));
-          test_case "Variable add" `Quick (fun () ->
-              test_parse_expr "13 + 37 + foo"
-                (Add (Add (Int 13, Int 37), Var "foo")));
-          test_case "Binary minus" `Quick (fun () ->
-              test_parse_expr "13 - foo" (Sub (Int 13, Var "foo")));
-          test_case "Binary mul" `Quick (fun () ->
-              test_parse_expr "13 * foo" (Mul (Int 13, Var "foo")));
-          test_case "Binary div" `Quick (fun () ->
-              test_parse_expr "13 / foo" (Div (Int 13, Var "foo")));
-          test_case "Simple parentheses" `Quick (fun () ->
-              test_parse_expr "(42)" (Int 42));
-          test_case "Parentheses with addition" `Quick (fun () ->
-              test_parse_expr "(13 + 37)" (Add (Int 13, Int 37)));
-          test_case "Nested parentheses" `Quick (fun () ->
-              test_parse_expr "((13 + 37))" (Add (Int 13, Int 37)));
-          test_case "Operator precedence with parentheses" `Quick (fun () ->
-              test_parse_expr "(2 + 3) * 4" (Mul (Add (Int 2, Int 3), Int 4)));
-          test_case "Operator precedence without parentheses" `Quick (fun () ->
-              test_parse_expr "2 + 3 * 4" (Add (Int 2, Mul (Int 3, Int 4))));
-          test_case "Complex nested parentheses" `Quick (fun () ->
-              test_parse_expr "(2 * (3 + 4)) / 5"
-                (Div (Mul (Int 2, Add (Int 3, Int 4)), Int 5)));
-          test_case "Parentheses with variables" `Quick (fun () ->
-              test_parse_expr "(foo + 3) * bar"
-                (Mul (Add (Var "foo", Int 3), Var "bar")));
+          test_case "Single bool" `Quick (fun () ->
+              test_parse_expr "true" (Bool true));
+          test_case "Single variable" `Quick (fun () ->
+              test_parse_expr "foo" (Var "foo"));
           test_case "Binary and" `Quick (fun () ->
-              test_parse_expr "13 && foo" (And (Int 13, Var "foo")));
+              test_parse_expr "true && foo" (And (Bool true, Var "foo")));
           test_case "Binary or" `Quick (fun () ->
-              test_parse_expr "13 || foo" (Or (Int 13, Var "foo")));
+              test_parse_expr "false || foo" (Or (Bool false, Var "foo")));
           test_case "Not" `Quick (fun () ->
-              test_parse_expr "!13" (Not (Int 13)));
+              test_parse_expr "!false" (Not (Bool false)));
+          test_case "Parentheses" `Quick (fun () ->
+              test_parse_expr "(true && (false || foo))"
+                (And (Bool true, Or (Bool false, Var "foo"))));
         ] );
       ( "parse_expr_list",
         [
-          test_case "Single expression" `Quick (fun () ->
-              test_parse_expr_list "42" [ Int 42 ]);
-          test_case "Two simple expressions" `Quick (fun () ->
-              test_parse_expr_list "42, 43" [ Int 42; Int 43 ]);
+          test_case "Single bool" `Quick (fun () ->
+              test_parse_expr_list "true" [ Bool true ]);
+          test_case "Multiple bools" `Quick (fun () ->
+              test_parse_expr_list "true, false" [ Bool true; Bool false ]);
+          test_case "Mixed bools / variables" `Quick (fun () ->
+              test_parse_expr_list "true, false, foo"
+                [ Bool true; Bool false; Var "foo" ]);
           test_case "Multiple expressions" `Quick (fun () ->
-              test_parse_expr_list "1 + 2, 3 * 4, 5"
-                [ Add (Int 1, Int 2); Mul (Int 3, Int 4); Int 5 ]);
-          test_case "Expressions with variables" `Quick (fun () ->
-              test_parse_expr_list "x, y + z"
-                [ Var "x"; Add (Var "y", Var "z") ]);
-          test_case "Expressions with parentheses" `Quick (fun () ->
-              test_parse_expr_list "(1 + 2), (3 * 4)"
-                [ Add (Int 1, Int 2); Mul (Int 3, Int 4) ]);
-          test_case "Complex mixed expressions" `Quick (fun () ->
-              test_parse_expr_list "x && y, (a + b) * c, !d || e"
-                [
-                  And (Var "x", Var "y");
-                  Mul (Add (Var "a", Var "b"), Var "c");
-                  Or (Not (Var "d"), Var "e");
-                ]);
-          test_case "Whitespace around commas" `Quick (fun () ->
-              test_parse_expr_list "1 , 2 , 3" [ Int 1; Int 2; Int 3 ]);
-          test_case "Empty list" `Quick (fun () ->
-              test_parse_expr_list "42" [ Int 42 ]);
+              test_parse_expr_list "true && false, foo || bar"
+                [ And (Bool true, Bool false); Or (Var "foo", Var "bar") ]);
         ] );
     ]

@@ -9,6 +9,8 @@ let plus_sign = '+'
 let minus_sign = '-'
 let mul_sign = '*'
 let div_sign = '/'
+let left_paren = '('
+let right_paren = ')'
 
 let int_constant = digit+
 
@@ -22,6 +24,8 @@ rule token = parse
   | minus_sign { MINUS }
   | mul_sign { MUL }
   | div_sign { DIV }
+  | left_paren { LPAREN }
+  | right_paren { RPAREN }
   | identifier { VARIABLE (Lexing.lexeme lexbuf) }
   | whitespace { token lexbuf }
   | eof { EOF}

@@ -10,18 +10,18 @@ let () =
     [
       ( "dump_expr",
         [
-          test_case "Single integer" `Quick (test_dump_expr (Int 42) "Int 42");
+          test_case "Single integer" `Quick (test_dump_expr (Int 42) "42");
           test_case "Binary add" `Quick
-            (test_dump_expr (Add (Int 13, Int 37)) "Int 13 + Int 37");
+            (test_dump_expr (Add (Int 13, Int 37)) "(13 + 37)");
           test_case "Variable add" `Quick
             (test_dump_expr
                (Add (Add (Int 13, Int 37), Var "foo"))
-               "Int 13 + Int 37 + Var foo");
+               "((13 + 37) + foo)");
           test_case "Binary minus" `Quick
-            (test_dump_expr (Sub (Int 13, Var "foo")) "Int 13 - Var foo");
+            (test_dump_expr (Sub (Int 13, Var "foo")) "(13 - foo)");
           test_case "Binary mul" `Quick
-            (test_dump_expr (Mul (Int 13, Var "foo")) "Int 13 * Var foo");
+            (test_dump_expr (Mul (Int 13, Var "foo")) "(13 * foo)");
           test_case "Binary div" `Quick
-            (test_dump_expr (Div (Int 13, Var "foo")) "Int 13 / Var foo");
+            (test_dump_expr (Div (Int 13, Var "foo")) "(13 / foo)");
         ] );
     ]

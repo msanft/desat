@@ -46,5 +46,21 @@ let () =
               test_parse_expr "13 * foo" (Mul (Int 13, Var "foo")));
           test_case "Binary div" `Quick (fun () ->
               test_parse_expr "13 / foo" (Div (Int 13, Var "foo")));
+          test_case "Simple parentheses" `Quick (fun () ->
+              test_parse_expr "(42)" (Int 42));
+          test_case "Parentheses with addition" `Quick (fun () ->
+              test_parse_expr "(13 + 37)" (Add (Int 13, Int 37)));
+          test_case "Nested parentheses" `Quick (fun () ->
+              test_parse_expr "((13 + 37))" (Add (Int 13, Int 37)));
+          test_case "Operator precedence with parentheses" `Quick (fun () ->
+              test_parse_expr "(2 + 3) * 4" (Mul (Add (Int 2, Int 3), Int 4)));
+          test_case "Operator precedence without parentheses" `Quick (fun () ->
+              test_parse_expr "2 + 3 * 4" (Add (Int 2, Mul (Int 3, Int 4))));
+          test_case "Complex nested parentheses" `Quick (fun () ->
+              test_parse_expr "(2 * (3 + 4)) / 5"
+                (Div (Mul (Int 2, Add (Int 3, Int 4)), Int 5)));
+          test_case "Parentheses with variables" `Quick (fun () ->
+              test_parse_expr "(foo + 3) * bar"
+                (Mul (Add (Var "foo", Int 3), Var "bar")));
         ] );
     ]

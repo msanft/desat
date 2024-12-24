@@ -20,3 +20,5 @@ let rec dump_expr e =
   | Or (e1, e2) -> "(" ^ dump_expr e1 ^ " || " ^ dump_expr e2 ^ ")"
   | Not e1 -> "!" ^ dump_expr e1
   | Var s -> s
+
+let dump_expr_list exprs = String.concat ", " (List.map dump_expr exprs)

@@ -5,6 +5,7 @@
 let digit = ['0'-'9']
 let alpha = ['a'-'z' 'A'-'Z']
 
+let comma = ','
 let plus_sign = '+'
 let minus_sign = '-'
 let mul_sign = '*'
@@ -32,6 +33,7 @@ rule token = parse
   | not_sign { NOT }
   | left_paren { LPAREN }
   | right_paren { RPAREN }
+  | comma { COMMA }
   | identifier { VARIABLE (Lexing.lexeme lexbuf) }
   | whitespace { token lexbuf }
   | eof { EOF}

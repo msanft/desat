@@ -21,3 +21,4 @@ let parse' f s =
            ^ pos_string lexbuf.lex_curr_p))
 
 let parse_expr s = parse' Parser.expr s
+let parse_expr_list s = parse' Parser.expr_list s

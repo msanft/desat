@@ -13,6 +13,7 @@ open Ast
 %token NOT
 %token LPAREN
 %token RPAREN
+%token COMMA
 %token EOF
 
 %left OR
@@ -22,12 +23,23 @@ open Ast
 %left MUL DIV
 
 %type <Ast.expr> expr
+%type <Ast.expr list> expr_list
 %start expr
+%start expr_list
 
 %%
 
 expr:
   | e = expr_inner EOF { e }
+  ;
+
+expr_list:
+  | es = expr_sequence EOF { es }
+  ;
+
+expr_sequence:
+  | e = expr_inner { [e] }                               (* Single expression *)
+  | e = expr_inner COMMA es = expr_sequence { e :: es }  (* Multiple expressions *)
   ;
 
 expr_inner:

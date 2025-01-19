@@ -4,7 +4,7 @@ A SAT solver in OCaml.
 
 > [!IMPORTANT]
 > For reproducibility purposes, it is recommended that Desat is built / installed / tested via [Nix](https://nixos.org/).
-> To install Nix on your system, use the [Determinate Systems Nix Installer](https://determinate.systems/posts/determinate-nix-installer/)
+> To install Nix on your system, use the [Determinate Systems Nix Installer](https://determinate.systems/posts/determinate-nix-installer/).
 
 ## How to build?
 

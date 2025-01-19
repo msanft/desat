@@ -33,3 +33,5 @@ _opam/
 
 # Nix
 result*
+
+__pycache__/

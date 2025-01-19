@@ -2,11 +2,10 @@
   open Ast
 %}
 
-%token AND OR NOT EQ
+%token AND OR NOT
 %token TRUE FALSE
 %token <string> VAR
 %token LPAREN RPAREN
-%token COMMA
 %token EOF
 
 %start <Ast.cnf> cnf_expr

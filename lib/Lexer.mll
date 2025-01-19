@@ -9,11 +9,9 @@ rule token = parse
   | whitespace { token lexbuf }
   | '('       { LPAREN }
   | ')'       { RPAREN }
-  | ','       { COMMA }
   | "&&"      { AND }
   | "||"      { OR }
   | '!'       { NOT }
-  | '='       { EQ }
   | "true"    { TRUE }
   | "false"   { FALSE }
   | var       { VAR (Lexing.lexeme lexbuf) }

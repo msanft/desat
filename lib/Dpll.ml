@@ -61,43 +61,20 @@ let evaluate_cnf : cnf -> bool option =
   in
   eval_clauses clauses
 
-let rec dpll :
-    cnf -> (string * bool) list -> (string * bool) list -> assignment option =
- fun formula fixed_assignments current_assignments ->
-  let check_fixed_assignments : unit -> bool =
-   fun () ->
-    List.for_all
-      (fun (var, value) ->
-        let substituted = substitute_cnf var value formula in
-        match evaluate_cnf substituted with Some false -> false | _ -> true)
-      fixed_assignments
-  in
+let rec dpll : cnf -> assignment -> assignment option =
+ fun formula current_assignments ->
+  match evaluate_cnf formula with
+  | Some true -> Some current_assignments
+  | Some false -> None
+  | None -> (
+      match find_variable formula with
+      | None -> Some current_assignments
+      | Some var -> (
+          let formula_true = substitute_cnf var true formula in
+          match dpll formula_true ((var, true) :: current_assignments) with
+          | Some result -> Some result
+          | None ->
+              let formula_false = substitute_cnf var false formula in
+              dpll formula_false ((var, false) :: current_assignments)))
 
-  if not (check_fixed_assignments ()) then None
-  else
-    match evaluate_cnf formula with
-    | Some true -> Some { assignments = current_assignments; formula }
-    | Some false -> None
-    | None -> (
-        match find_variable formula with
-        | None -> Some { assignments = current_assignments; formula }
-        | Some var -> (
-            match List.assoc_opt var fixed_assignments with
-            | Some value ->
-                let formula' = substitute_cnf var value formula in
-                dpll formula' fixed_assignments
-                  ((var, value) :: current_assignments)
-            | None -> (
-                let formula_true = substitute_cnf var true formula in
-                match
-                  dpll formula_true fixed_assignments
-                    ((var, true) :: current_assignments)
-                with
-                | Some result -> Some result
-                | None ->
-                    let formula_false = substitute_cnf var false formula in
-                    dpll formula_false fixed_assignments
-                      ((var, false) :: current_assignments))))
-
-let solve : assignment -> assignment option =
- fun assgn -> dpll assgn.formula assgn.assignments []
+let solve : cnf -> assignment option = fun formula -> dpll formula []

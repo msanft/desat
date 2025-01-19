@@ -93,29 +93,6 @@ let () =
                      Clause [ Neg "bar"; Pos "baz" ];
                    ]));
         ] );
-      ( "parse_assignment",
-        [
-          test_case "Single assignment" `Quick (fun () ->
-              let actual = parse_assignment "{ x = true } foo" in
-              Alcotest.(check (list (pair string bool)))
-                "assignments"
-                [ ("x", true) ]
-                actual.assignments;
-              Alcotest.(check cnf)
-                "formula" (CNF [ Clause [ Pos "foo" ] ]) actual.formula);
-          test_case "Multiple assignments" `Quick (fun () ->
-              let actual =
-                parse_assignment "{ a = false, b = true } (a || b)"
-              in
-              Alcotest.(check (list (pair string bool)))
-                "assignments"
-                [ ("a", false); ("b", true) ]
-                actual.assignments;
-              Alcotest.(check cnf)
-                "formula"
-                (CNF [ Clause [ Pos "a"; Pos "b" ] ])
-                actual.formula);
-        ] );
       ( "reject_invalid_cnf",
         [
           test_case "Nested OR" `Quick (fun () ->

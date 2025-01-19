@@ -23,7 +23,7 @@ let () =
     [
       ( "dump_cnf",
         [
-          test_case "Single variable" `Quick
+          test_case "Single literal clause" `Quick
             (test_dump_cnf
                (mk_cnf [ mk_clause [ mk_literal_pos "foo" ] ])
                "foo");
@@ -36,13 +36,15 @@ let () =
                     mk_clause [ mk_literal_neg "z" ];
                   ])
                "(x || y) && (!a || !b) && !z");
-          test_case "Assignment with CNF" `Quick
+        ] );
+      ( "dump_assignment",
+        [
+          test_case "Single assignment" `Quick
+            (test_dump_assignment [ ("foo", true) ] "foo = true");
+          test_case "Multiple assignments" `Quick
             (test_dump_assignment
-               {
-                 assignments = [ ("x", true); ("y", false) ];
-                 formula = mk_cnf [ mk_clause [ mk_literal_pos "z" ] ];
-               }
-               "{ x = true, y = false } z");
+               [ ("foo", true); ("bar", false) ]
+               "foo = true, bar = false");
         ] );
       ( "dump_clause",
         [
@@ -55,6 +57,8 @@ let () =
         ] );
       ( "dump_literal",
         [
+          test_case "Single variable" `Quick
+            (test_dump_clause (mk_clause [ mk_literal_pos "foo" ]) "foo");
           test_case "Boolean true" `Quick
             (test_dump_clause (mk_clause [ Bool true ]) "true");
           test_case "Boolean false" `Quick

@@ -9,8 +9,6 @@ rule token = parse
   | whitespace { token lexbuf }
   | '('       { LPAREN }
   | ')'       { RPAREN }
-  | '{'       { LCURLY }
-  | '}'       { RCURLY }
   | ','       { COMMA }
   | "&&"      { AND }
   | "||"      { OR }

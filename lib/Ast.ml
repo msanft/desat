@@ -1,7 +1,7 @@
 type literal = Pos of string | Neg of string | Bool of bool
 type clause = Clause of literal list
 type cnf = CNF of clause list
-type assignment = { assignments : (string * bool) list; formula : cnf }
+type assignment = (string * bool) list (* simplified *)
 
 let string_of_literal (lit : literal) : string =
   match lit with Pos v -> v | Neg v -> "!" ^ v | Bool b -> string_of_bool b
@@ -21,7 +21,4 @@ let string_of_cnf (CNF clauses : cnf) : string =
 let string_of_assignment_pair (var, value) = var ^ " = " ^ string_of_bool value
 
 let string_of_assignment (assgn : assignment) : string =
-  let assignments_str =
-    String.concat ", " (List.map string_of_assignment_pair assgn.assignments)
-  in
-  "{ " ^ assignments_str ^ " } " ^ string_of_cnf assgn.formula
+  String.concat ", " (List.map string_of_assignment_pair assgn)

@@ -23,7 +23,5 @@ let parse' f (s : string) =
            ("Unknown error: " ^ Printexc.to_string e ^ " at "
            ^ pos_string lexbuf.lex_curr_p))
 
-let parse_cnf (s : string) : Ast.cnf = parse' Parser.cnf_expr s
-
-let parse_assignment (s : string) : Ast.assignment =
-  parse' Parser.cnf_with_assignments s
+let parse_cnf (s : string) : Ast.cnf =
+  parse' Parser.cnf_expr s

@@ -1,11 +1,12 @@
 open Desat.Dpll
 open Desat.ParserInterface
+open Desat.Format
 
 let print_result = function
-  | None -> Printf.printf "UNSAT\n"
+  | None -> print_string (bold "UNSAT\n")
   | Some assignment ->
-      Printf.printf "SAT\n";
-      Printf.printf "Assignments:\n";
+      print_string (bold "SAT\n");
+      print_string (bold "Assignments:\n");
       List.iter
         (fun (var, value) -> Printf.printf "  %s = %b\n" var value)
         assignment

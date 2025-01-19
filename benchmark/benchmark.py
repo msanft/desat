@@ -16,6 +16,7 @@ def run_benchmark() -> None:
         ("Large", [100, 100, (1, 100)]),
     ]
     iterations = 10
+    timeout_threshold = 10
 
     for config in configs:
         times = []
@@ -25,7 +26,7 @@ def run_benchmark() -> None:
             expr = generate_expr.generate_cnf_expr(*config[1])
             now = time.time()
             try:
-                result = subprocess.run(["desat", expr], capture_output=True, timeout=10)
+                result = subprocess.run(["desat", expr], capture_output=True, timeout=timeout_threshold)
                 elapsed = time.time() - now
                 times.append(elapsed)
             except subprocess.TimeoutExpired:

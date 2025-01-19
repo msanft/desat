@@ -1,16 +1,12 @@
+#!/usr/bin/env python3
+
 import random, argparse
 
 """
-Generate a CNF expression of form `{ x = false, ... } (x || !y) ...`.
-Variables can, but do not need to be assigned.
+Generate a CNF expression of form `(x || !y) ...`.
 """
 def generate_cnf_expr(num_vars: int, num_clauses: int, var_range_per_clause: tuple[int, int]) -> str:
     variables = [f"x{i}" for i in range(num_vars)]
-
-    assignments = []
-    for var in variables:
-        if random.choice([True, False]):
-            assignments.append(f"{var} = {random.choice(["true", "false"])}")
 
     clauses = []
     for _ in range(num_clauses):
@@ -22,7 +18,7 @@ def generate_cnf_expr(num_vars: int, num_clauses: int, var_range_per_clause: tup
             clause.append(var)
         clauses.append(f"({" || ".join(clause)})")
 
-    return f"{{{", ".join(assignments)}}} {" && ".join(clauses)}"
+    return " && ".join(clauses)
 
 parser = argparse.ArgumentParser(
     prog='generate_expr',

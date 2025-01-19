@@ -35,3 +35,5 @@ _opam/
 result*
 
 __pycache__/
+
+benchmark-results/

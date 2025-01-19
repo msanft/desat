@@ -28,7 +28,7 @@
           ];
         };
 
-        packages = {
+        packages = rec {
           desat = pkgs.ocamlPackages.buildDunePackage {
             pname = "desat";
             version = "0.0.1";
@@ -49,6 +49,26 @@
             ];
 
             doCheck = true;
+          };
+
+          benchmark = pkgs.writeShellApplication {
+            name = "benchmark";
+
+            runtimeInputs =
+              with pkgs;
+              [
+                (python3.withPackages (
+                  ps: with ps; [
+                    numpy
+                    matplotlib
+                  ]
+                ))
+              ]
+              ++ [ desat ];
+
+            text = ''
+              python3 benchmark/benchmark.py
+            '';
           };
         };
       }

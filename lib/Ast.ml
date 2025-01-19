@@ -4,10 +4,7 @@ type cnf = CNF of clause list
 type assignment = { assignments : (string * bool) list; formula : cnf }
 
 let string_of_literal (lit : literal) : string =
-  match lit with
-  | Pos v -> v
-  | Neg v -> "!" ^ v
-  | Bool b -> string_of_bool b
+  match lit with Pos v -> v | Neg v -> "!" ^ v | Bool b -> string_of_bool b
 
 let string_of_clause (Clause lits : clause) : string =
   match lits with

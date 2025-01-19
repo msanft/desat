@@ -8,10 +8,7 @@ let pos_string (pos : position) : string =
 
 let parse' f (s : string) =
   let lexbuf = Lexing.from_string s in
-  try
-    Printf.printf "Parsing: '%s'\n" s;
-    f Lexer.token lexbuf
-  with
+  try f Lexer.token lexbuf with
   | Parser.Error ->
       raise (Failure ("Parser error at " ^ pos_string lexbuf.lex_curr_p))
   | Failure msg ->
@@ -23,5 +20,4 @@ let parse' f (s : string) =
            ("Unknown error: " ^ Printexc.to_string e ^ " at "
            ^ pos_string lexbuf.lex_curr_p))
 
-let parse_cnf (s : string) : Ast.cnf =
-  parse' Parser.cnf_expr s
+let parse_cnf (s : string) : Ast.cnf = parse' Parser.cnf_expr s

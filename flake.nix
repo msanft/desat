@@ -27,6 +27,30 @@
             ocamlPackages.menhir
           ];
         };
+
+        packages = {
+          desat = pkgs.ocamlPackages.buildDunePackage {
+            pname = "desat";
+            version = "0.0.1";
+
+            duneVersion = "3";
+
+            minimalOCamlVersion = "5.2.1";
+
+            src = ./.;
+
+            nativeBuildInputs = with pkgs.ocamlPackages; [
+              menhir
+              findlib
+            ];
+
+            checkInputs = with pkgs.ocamlPackages; [
+              alcotest
+            ];
+
+            doCheck = true;
+          };
+        };
       }
     );
 }

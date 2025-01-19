@@ -31,4 +31,5 @@ _opam/
 # Direnv
 .direnv/
 
-
+# Nix
+result*

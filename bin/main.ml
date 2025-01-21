@@ -1,6 +1,8 @@
 open Desat.Dpll
 open Desat.ParserInterface
 open Desat.Format
+open Desat.Tseitin
+open Desat.Ast
 
 let print_result = function
   | None -> print_string (bold "UNSAT\n")
@@ -19,8 +21,18 @@ let () =
       exit 1
   | 2 -> (
       try
-        let expr = parse_cnf Sys.argv.(1) in
-        solve expr |> print_result
+        match parse_cnf Sys.argv.(1) with
+        | cnf -> solve cnf |> print_result
+        | exception Failure _ ->
+            print_string
+              (bold
+                 "Parsing as CNF failed, trying to perform Tseitin's \
+                  transformation\n");
+            let expr = parse_boolean_expr Sys.argv.(1) in
+            let cnf = to_cnf expr in
+            print_string (bold "Equi-satisfiable CNF:\n");
+            print_string (string_of_cnf cnf ^ "\n");
+            solve cnf |> print_result
       with Failure msg ->
         Printf.eprintf "Error: %s\n" msg;
         exit 1)

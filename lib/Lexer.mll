@@ -11,6 +11,8 @@ rule token = parse
   | ')'       { RPAREN }
   | "&&"      { AND }
   | "||"      { OR }
+  | "->"      { IMP }
+  | "<->"     { EQ }
   | '!'       { NOT }
   | "true"    { TRUE }
   | "false"   { FALSE }

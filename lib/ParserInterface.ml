@@ -21,3 +21,5 @@ let parse' f (s : string) =
            ^ pos_string lexbuf.lex_curr_p))
 
 let parse_cnf (s : string) : Ast.cnf = parse' Parser.cnf_expr s
+
+let parse_boolean_expr (s : string) : Ast.boolean_expr = parse' Parser.boolean_expr s

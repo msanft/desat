@@ -17,6 +17,10 @@ let test_dump_assignment (assgn : assignment) (expected : string) () : unit =
   let actual = string_of_assignment assgn in
   Alcotest.(check string) "dump_assignment" expected actual
 
+let test_dump_boolean_expr (expr : boolean_expr) (expected : string) () : unit =
+  let actual = string_of_boolean_expr expr in
+  Alcotest.(check string) "dump_boolean_expr" expected actual
+
 let () =
   let open Alcotest in
   run "AST Tests"
@@ -63,5 +67,28 @@ let () =
             (test_dump_clause (mk_clause [ Bool true ]) "true");
           test_case "Boolean false" `Quick
             (test_dump_clause (mk_clause [ Bool false ]) "false");
+        ] );
+      ( "dump_boolean_expr",
+        [
+          test_case "Single variable" `Quick
+            (test_dump_boolean_expr (Var "foo") "foo");
+          test_case "Negated variable" `Quick
+            (test_dump_boolean_expr (Not (Var "foo")) "!foo");
+          test_case "And" `Quick
+            (test_dump_boolean_expr
+               (And [ Var "foo"; Var "bar" ])
+               "(foo && bar)");
+          test_case "Or" `Quick
+            (test_dump_boolean_expr
+               (Or [ Var "foo"; Var "bar" ])
+               "(foo || bar)");
+          test_case "Const true" `Quick
+            (test_dump_boolean_expr (Const true) "true");
+          test_case "Const false" `Quick
+            (test_dump_boolean_expr (Const false) "false");
+          test_case "Implication" `Quick
+            (test_dump_boolean_expr (Imp (Var "foo", Var "bar")) "(foo -> bar)");
+          test_case "Equivalence" `Quick
+            (test_dump_boolean_expr (Eq (Var "foo", Var "bar")) "(foo <-> bar)");
         ] );
     ]

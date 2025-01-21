@@ -2,13 +2,20 @@
   open Ast
 %}
 
-%token AND OR NOT
+%token AND OR NOT IMP EQ
 %token TRUE FALSE
 %token <string> VAR
 %token LPAREN RPAREN
 %token EOF
 
+%start <Ast.boolean_expr> boolean_expr
 %start <Ast.cnf> cnf_expr
+
+%right IMP
+%right EQ
+%left OR
+%left AND
+%nonassoc NOT
 
 %%
 
@@ -31,6 +38,21 @@ literal:
   | v=VAR { Pos v }
   | NOT v=VAR { Neg v }
   | b=bool_const { Bool b }
+  ;
+
+boolean_expr:
+  | e=expr EOF { e }
+  ;
+
+expr:
+  | e1=expr IMP e2=expr { Imp(e1, e2) }
+  | e1=expr EQ e2=expr { Eq(e1, e2) }
+  | e1=expr OR e2=expr { Or [e1; e2] }
+  | e1=expr AND e2=expr { And [e1; e2] }
+  | NOT e=expr { Not e }
+  | LPAREN e=expr RPAREN { e }
+  | v=VAR { Var v }
+  | b=bool_const { Const b }
   ;
 
 bool_const:

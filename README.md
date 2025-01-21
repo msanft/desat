@@ -48,6 +48,26 @@ Assignments:
   x0 = true
 ```
 
+Desat also supports non-CNF-formulas, in which case Tseitin's transformation is used for transformation into
+an equi-satisfiable CNF:
+
+```sh
+desat 'x0 <-> x1'
+```
+
+Which should yield the following output:
+
+```console-output
+Parsing as CNF failed, trying to perform Tseitin's transformation
+Equi-satisfiable CNF:
+t1 && (!t1 || !x0 || x1) && (!t1 || x0 || !x1) && (t1 || !x0 || !x1) && (t1 || x0 || x1)
+SAT
+Assignments:
+  x1 = true
+  x0 = true
+  t1 = true
+```
+
 ## How to reproduce the benchmarks?
 
 ### With Nix

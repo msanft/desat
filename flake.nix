@@ -67,7 +67,7 @@
               ++ [ desat ];
 
             text = ''
-              python3 benchmark/benchmark.py
+              python3 benchmark/benchmark.py "$@"
             '';
           };
         };

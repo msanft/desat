@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-def run_benchmark() -> None:
+def run_benchmark(approach) -> None:
     try: os.stat("benchmark-results")
     except FileNotFoundError:
         print(("Results directory (`./benchmark-results`) not found. Creating it..."))
@@ -26,7 +26,7 @@ def run_benchmark() -> None:
             expr = generate_expr.generate_cnf_expr(*config[1])
             now = time.time()
             try:
-                result = subprocess.run(["desat", expr], capture_output=True, timeout=timeout_threshold
+                result = subprocess.run(["desat", approach, expr], capture_output=True, timeout=timeout_threshold
                 )
                 elapsed = time.time() - now
                 times.append(elapsed)
@@ -73,6 +73,14 @@ parser = argparse.ArgumentParser(
     description="Benchmark desat",
 )
 
+parser.add_argument(
+    "approach",
+    type=str,
+    choices=["DPLL", "CDCL"],
+    help="The approach to benchmark",
+)
+
+
 if __name__ == "__main__":
     args = parser.parse_args()
-    run_benchmark()
+    run_benchmark(args.approach)

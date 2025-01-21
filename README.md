@@ -31,12 +31,12 @@ You will then find the executable in `./_build/default/bin/main.exe`
 ## How to use?
 
 Desat is straight-forward to use.
-Feed it a CNF formular as the only argument and you're good to go.
+Feed it a boolean formula as the only argument and you're good to go.
 
 For example:
 
 ```sh
-desat '(x0 || !x1 || x2) && (!x1 || x1) && (x1)'
+desat DPLL '(x0 || !x1 || x2) && (!x1 || x1) && (x1)'
 ```
 
 Which should yield the following output:
@@ -52,7 +52,7 @@ Desat also supports non-CNF-formulas, in which case Tseitin's transformation is 
 an equi-satisfiable CNF:
 
 ```sh
-desat 'x0 <-> x1'
+desat DPLL 'x0 <-> x1'
 ```
 
 Which should yield the following output:
@@ -68,16 +68,23 @@ Assignments:
   t1 = true
 ```
 
+You can also use conflict-driven clause learning (CDCL), if you'd like. However, the current primitive implementation performs worse
+than DPLL in most cases.
+
+```sh
+desat CDCL '(x0 || !x1 || x2) && (!x1 || x1) && (x1)' # Can also be non-CNF
+```
+
 ## How to reproduce the benchmarks?
 
 ### With Nix
 
 ```sh
-nix run .#benchmark
+nix run .#benchmark -- <CDCL/DPLL>
 ```
 
 ### Without Nix
 
 ```sh
-python3 benchmark/benchmark.py
+python3 benchmark/benchmark.py <CDCL/DPLL>
 ```

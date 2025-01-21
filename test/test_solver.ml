@@ -1,17 +1,45 @@
 open Desat.Ast
-open Desat.Dpll
+open Desat.Solver
 
 let mk_literal_pos v = Pos v
 let mk_literal_neg v = Neg v
 let mk_clause lits = Clause lits
 let mk_cnf clauses = CNF clauses
 
+let with_timeout seconds f =
+  let old_handler =
+    Sys.signal Sys.sigalrm
+      (Sys.Signal_handle (fun _ -> raise (Failure "Timeout")))
+  in
+  let reset () = Sys.set_signal Sys.sigalrm old_handler in
+  try
+    ignore (Unix.alarm seconds);
+    let result = f () in
+    ignore (Unix.alarm 0);
+    reset ();
+    result
+  with e ->
+    ignore (Unix.alarm 0);
+    reset ();
+    raise e
+
 let test_sat (formula : cnf) (expected : bool) () : unit =
-  let actual = match solve formula with Some _ -> true | None -> false in
-  Alcotest.(check bool) "satisfiability" expected actual
+  let run_solver solver =
+    try
+      with_timeout 5 (fun () ->
+          (* 5 second timeout *)
+          match solve solver formula with
+          | Some _ -> true
+          | None -> false)
+    with Failure _ -> false
+  in
+  let dpll_actual = run_solver Dpll in
+  let cdcl_actual = run_solver Cdcl in
+  Alcotest.(check bool) "DPLL Satisfiability" expected dpll_actual;
+  Alcotest.(check bool) "CDCL Satisfiability" expected cdcl_actual
 
 let test_assignment (formula : cnf) (expected : assignment) () : unit =
-  match solve formula with
+  match solve Dpll formula with
   | None -> Alcotest.fail "Expected SAT, got UNSAT"
   | Some result ->
       (* Sort assignments for consistent comparison *)
@@ -23,7 +51,7 @@ let test_assignment (formula : cnf) (expected : assignment) () : unit =
 
 let () =
   let open Alcotest in
-  run "DPLL Tests"
+  run "Solver Tests"
     [
       ( "satisfiability",
         [

@@ -1,67 +1,13 @@
 open Ast
+open SolverUtils
 
-let rec find_variable : cnf -> string option =
- fun (CNF clauses) ->
-  let rec find_in_clause : clause -> string option =
-   fun (Clause lits) ->
-    match lits with
-    | [] -> None
-    | Pos v :: _ -> Some v
-    | Neg v :: _ -> Some v
-    | Bool _ :: rest -> find_in_clause (Clause rest)
-  in
-  match clauses with
-  | [] -> None
-  | Clause [] :: _ -> None
-  | clause :: rest -> (
-      match find_in_clause clause with
-      | Some v -> Some v
-      | None -> find_variable (CNF rest))
+type solver_state = {
+  formula : cnf;
+  assignments : assignment;
+  variable_activity : (string * float) list;
+}
 
-let substitute_literal : string -> bool -> literal -> literal =
- fun var value lit ->
-  match lit with
-  | Pos v when v = var -> Bool value
-  | Neg v when v = var -> Bool (not value)
-  | _ -> lit
-
-let substitute_clause : string -> bool -> clause -> clause =
- fun var value (Clause lits) ->
-  Clause (List.map (substitute_literal var value) lits)
-
-let substitute_cnf : string -> bool -> cnf -> cnf =
- fun var value (CNF clauses) ->
-  CNF (List.map (substitute_clause var value) clauses)
-
-let evaluate_literal : literal -> bool option = function
-  | Bool b -> Some b
-  | _ -> None
-
-let evaluate_clause : clause -> bool option =
- fun (Clause lits) ->
-  let rec eval_lits : literal list -> bool option = function
-    | [] -> Some false
-    | lit :: rest -> (
-        match evaluate_literal lit with
-        | Some true -> Some true
-        | Some false -> eval_lits rest
-        | None -> None)
-  in
-  eval_lits lits
-
-let evaluate_cnf : cnf -> bool option =
- fun (CNF clauses) ->
-  let rec eval_clauses : clause list -> bool option = function
-    | [] -> Some true
-    | clause :: rest -> (
-        match evaluate_clause clause with
-        | Some false -> Some false
-        | Some true -> eval_clauses rest
-        | None -> None)
-  in
-  eval_clauses clauses
-
-let find_unit_clause : cnf -> (string * bool) option =
+let find_unit_clause =
  fun (CNF clauses) ->
   let rec find_in_clause : literal list -> (string * bool) option =
    fun lits ->
@@ -81,7 +27,7 @@ let find_unit_clause : cnf -> (string * bool) option =
   in
   search_clauses clauses
 
-let find_pure_literal : cnf -> (string * bool) option =
+let find_pure_literal =
  fun (CNF clauses) ->
   let rec collect_occurrences : clause list -> string list * string list =
    fun cls ->
@@ -117,33 +63,87 @@ let find_pure_literal : cnf -> (string * bool) option =
   in
   find_pure pos_vars neg_vars
 
-let rec dpll : cnf -> assignment -> assignment option =
- fun formula current_assignments ->
-  match evaluate_cnf formula with
-  | Some true -> Some current_assignments
+let bump_variable_activity state var =
+  {
+    state with
+    variable_activity = bump_activity state.variable_activity var 0.95;
+  }
+
+let choose_variable state =
+  let unassigned_vars =
+    List.filter
+      (fun (var, _) ->
+        not
+          (List.exists
+             (fun (assigned_var, _) -> assigned_var = var)
+             state.assignments))
+      state.variable_activity
+  in
+  match unassigned_vars with
+  | [] -> None
+  | vars ->
+      let chosen_var, _ =
+        List.fold_left
+          (fun (best_var, best_activity) (var, activity) ->
+            if activity > best_activity then (var, activity)
+            else (best_var, best_activity))
+          (List.hd vars) (List.tl vars)
+      in
+      Some chosen_var
+
+let rec dpll state =
+  match evaluate_cnf state.formula with
+  | Some true -> Some state.assignments
   | Some false -> None
   | None -> (
-      match find_unit_clause formula with
+      match find_unit_clause state.formula with
       | Some (var, value) ->
-          let formula_prop = substitute_cnf var value formula in
-          dpll formula_prop ((var, value) :: current_assignments)
+          let new_formula = substitute_cnf var value state.formula in
+          let new_state =
+            {
+              formula = new_formula;
+              assignments = (var, value) :: state.assignments;
+              variable_activity = state.variable_activity;
+            }
+          in
+          dpll (bump_variable_activity new_state var)
       | None -> (
-          match find_pure_literal formula with
+          match find_pure_literal state.formula with
           | Some (var, value) ->
-              let formula_pure = substitute_cnf var value formula in
-              dpll formula_pure ((var, value) :: current_assignments)
+              let new_formula = substitute_cnf var value state.formula in
+              let new_state =
+                {
+                  formula = new_formula;
+                  assignments = (var, value) :: state.assignments;
+                  variable_activity = state.variable_activity;
+                }
+              in
+              dpll (bump_variable_activity new_state var)
           | None -> (
-              match find_variable formula with
-              | None -> Some current_assignments
+              match choose_variable state with
+              | None -> Some state.assignments
               | Some var -> (
-                  let formula_true = substitute_cnf var true formula in
-                  match
-                    dpll formula_true ((var, true) :: current_assignments)
-                  with
+                  let try_value value =
+                    let new_formula = substitute_cnf var value state.formula in
+                    let new_state =
+                      {
+                        formula = new_formula;
+                        assignments = (var, value) :: state.assignments;
+                        variable_activity = state.variable_activity;
+                      }
+                    in
+                    dpll (bump_variable_activity new_state var)
+                  in
+                  match try_value true with
                   | Some result -> Some result
-                  | None ->
-                      let formula_false = substitute_cnf var false formula in
-                      dpll formula_false ((var, false) :: current_assignments)))
-          ))
+                  | None -> try_value false))))
 
-let solve : cnf -> assignment option = fun formula -> dpll formula []
+let solve_dpll formula =
+  let initial_state =
+    {
+      formula;
+      assignments = [];
+      variable_activity = initialize_activities formula;
+    }
+  in
+  dpll initial_state

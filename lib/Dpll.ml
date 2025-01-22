@@ -5,6 +5,7 @@ type solver_state = {
   formula : cnf;
   assignments : assignment;
   variable_activity : (string * float) list;
+  decay_period : int;
 }
 
 let find_unit_clause =
@@ -66,7 +67,8 @@ let find_pure_literal =
 let bump_variable_activity state var =
   {
     state with
-    variable_activity = bump_activity state.variable_activity var 0.95;
+    variable_activity =
+      bump_activity state.variable_activity var 0.95 state.decay_period;
   }
 
 let choose_variable state =
@@ -104,6 +106,7 @@ let rec dpll state =
               formula = new_formula;
               assignments = (var, value) :: state.assignments;
               variable_activity = state.variable_activity;
+              decay_period = state.decay_period + 1;
             }
           in
           dpll (bump_variable_activity new_state var)
@@ -116,6 +119,7 @@ let rec dpll state =
                   formula = new_formula;
                   assignments = (var, value) :: state.assignments;
                   variable_activity = state.variable_activity;
+                  decay_period = state.decay_period + 1;
                 }
               in
               dpll (bump_variable_activity new_state var)
@@ -130,6 +134,7 @@ let rec dpll state =
                         formula = new_formula;
                         assignments = (var, value) :: state.assignments;
                         variable_activity = state.variable_activity;
+                        decay_period = state.decay_period + 1;
                       }
                     in
                     dpll (bump_variable_activity new_state var)
@@ -144,6 +149,7 @@ let solve_dpll formula =
       formula;
       assignments = [];
       variable_activity = initialize_activities formula;
+      decay_period = 0;
     }
   in
   dpll initial_state

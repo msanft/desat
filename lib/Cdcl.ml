@@ -13,6 +13,7 @@ type solver_state = {
   num_conflicts : int;
   next_restart : int;
   restart_count : int;
+  decay_period : int;
 }
 
 let get_literals = function Clause lits -> lits
@@ -28,6 +29,7 @@ let initial_state (CNF clauses) =
     num_conflicts = 0;
     next_restart = 100;
     restart_count = 1;
+    decay_period = 0;
   }
 
 let get_level var state =
@@ -105,6 +107,7 @@ let rec propagate state =
           decision_levels =
             (var, { level = state.current_level; previous = Some clause_idx })
             :: state.decision_levels;
+          decay_period = state.decay_period + 1;
         }
       in
       propagate new_state
@@ -113,7 +116,8 @@ let rec propagate state =
 let bump_variable_activity state var =
   {
     state with
-    variable_activity = bump_activity state.variable_activity var 0.95;
+    variable_activity =
+      bump_activity state.variable_activity var 0.95 state.decay_period;
   }
 
 let analyze_conflict state conflict_clause_idx =
@@ -187,6 +191,7 @@ let rec cdcl state =
                   ( next_var,
                     { level = state.current_level + 1; previous = None } )
                   :: state.decision_levels;
+                decay_period = state.decay_period + 1;
               }
             in
             match cdcl new_state with
@@ -202,6 +207,7 @@ let rec cdcl state =
                       ( next_var,
                         { level = state.current_level + 1; previous = None } )
                       :: List.remove_assoc next_var state.decision_levels;
+                    decay_period = state.decay_period + 1;
                   }
                 in
                 cdcl new_state))
@@ -241,6 +247,7 @@ let rec cdcl state =
             clauses = Array.append state.clauses [| learned_clause |];
             learned_clauses = learned_clause :: state.learned_clauses;
             num_conflicts = state.num_conflicts + 1;
+            decay_period = state.decay_period + 1;
           }
         in
 
@@ -261,6 +268,7 @@ let rec cdcl state =
               decision_levels = [];
               next_restart = next_restart 30 (new_state.restart_count + 1);
               restart_count = new_state.restart_count + 1;
+              decay_period = state.decay_period + 1;
             }
         else cdcl new_state
 

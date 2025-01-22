@@ -80,7 +80,13 @@ let initialize_activities formula =
   in
   collect_vars [] formula
 
-let bump_activity activities var decay_factor =
+let bump_activity activities var decay_factor decay_period =
   let activity = try List.assoc var activities with Not_found -> 0.0 in
-  let new_activity = activity +. 1.0 in
-  (var, new_activity *. decay_factor) :: List.remove_assoc var activities
+  let new_activity = activity *. 2.0 in
+  let updated_activities =
+    List.map
+      (fun (v, act) ->
+        if decay_period mod 256 = 0 then (v, act *. decay_factor) else (v, act))
+      (List.remove_assoc var activities)
+  in
+  (var, new_activity) :: updated_activities
